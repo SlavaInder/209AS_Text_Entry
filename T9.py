@@ -8,4 +8,4 @@ class T9Trie(object):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='example.log', level=logging.DEBUG)
+    logging.basicConfig(filename='logs/example.log', level=logging.DEBUG)
