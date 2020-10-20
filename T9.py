@@ -10,6 +10,7 @@ import logging
 predict_start = "predict method started working on seq {seq}"
 predict_node_search = "predict method searches for node {node}"
 predict_node_not_found = "node {node} is not found. Prediction is empty"
+predict_added = "predictions of the node {node} (depth level = {depth}) are added. Now prediction is \n{prediction}"
 # set info messages for update
 upd_start = "update method started working on word {word}"
 upd_node_search = "update method processes letter {letter}"
@@ -37,13 +38,13 @@ class Trie(object):
         self.letters_ahead = letters_ahead
 
     # perform tree setup on a given file
-    def train(self,  file_name: str, depth: int):
+    def train(self,  file_name: str):
         pass
 
     # func to predict a typed word
     # returns a list of possible words in order from
     # the most probable to the least probable
-    def predict(self, seq: str):
+    def predict(self, seq: str, depth=3):
         # init node reference
         current_node = None
         # update the log file
@@ -79,7 +80,9 @@ class Trie(object):
         # after traversing until the end, we can start give predictions
         # init prediction dictionary
         prediction_dict = {}
-        #prediction_dict + current_node.words
+        prediction_dict.update(current_node.words)
+        logging.debug(predict_added.format(depth=0, prediction=prediction_dict, node=current_node.symbol))
+
 
 
 
@@ -169,12 +172,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename='logs/T9_execution.log', filemode='w', level=logging.DEBUG)
     t9 = Trie()
     t9.update("Slava")
-    t9.update("Slavb")
-    t9.update("Slaba")
-    t9.update("Slbva")
-    t9.update("Sbava")
-    t9.update("Blava")
-    logging.info(str(t9))
+    t9.predict("75282")
+    t9.predict("7528")
+    t9.predict("752")
     t9.predict("75")
-    t9.predict("21")
-    t9.predict("31")
