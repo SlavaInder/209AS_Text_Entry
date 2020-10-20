@@ -6,8 +6,14 @@
 import logging
 
 
-# set info messages
-
+# set info messages for prediction
+predict_start = "predict method started working on seq {seq}"
+predict_node_search = "predict method searches for node {node}"
+predict_node_not_found = "node {node} is not found. Prediction is empty"
+# set info messages for update
+upd_start = "update method started working on word {word}"
+upd_node_search = "update method processes letter {letter}"
+upd_node_not_found = "Node {node} is not found. Creating node {node}"
 # set up forward mapping
 KEY_TO_LET = {"1": ["'"],
               "2": ["a", "A", "b", "B", "c", "C"],
@@ -41,14 +47,15 @@ class Trie(object):
         # init node reference
         current_node = None
         # update the log file
-        logging.debug("predict method started working on seq %s", seq)
-        logging.debug("predict method searches for node %s", seq[0])
+        logging.debug(predict_start.format(seq=seq))
+        logging.debug(predict_node_search.format(node=seq[0]))
         # check if there is a corresponding node
         for child in self.children:
             if child.symbol == seq[0]:
                 current_node = child
         # if there is no, we can not give a prediction
         if current_node is None:
+            logging.debug(predict_node_not_found.format(node=seq[0]))
             return []
 
         # if there is, traverse the trie if possible
@@ -56,13 +63,14 @@ class Trie(object):
             # init temp node reference
             temp_node = None
             # log update stage
-            logging.debug("predict method searches for node %s", num)
+            logging.debug(predict_node_search.format(node=num))
             # check if corresponding node already exists
             for child in current_node.children:
                 if child.symbol == num:
                     temp_node = child
             # if there is no node to be found, we can not give a prediction
             if temp_node is None:
+                logging.debug(predict_node_not_found.format(node=num))
                 return []
             # else switch to the next node
             else:
@@ -71,7 +79,7 @@ class Trie(object):
         # after traversing until the end, we can start give predictions
         # init prediction dictionary
         prediction_dict = {}
-        prediction_dict += current_node.words
+        #prediction_dict + current_node.words
 
 
 
@@ -82,15 +90,15 @@ class Trie(object):
         # init node reference
         current_node = None
         # update the log file
-        logging.debug("update method started working on word %s", word)
-        logging.debug("update method processes letter %s", word[0])
+        logging.debug(upd_start.format(word=word))
+        logging.debug(upd_node_search.format(letter=word[0]))
         # if corresponding node already exists, get it
         for child in self.children:
             if child.symbol == LET_TO_KEY[word[0]]:
                 current_node = child
         # if there is no node to be found, create one
         if current_node is None:
-            logging.debug("Node %s is not found. Creating node %s", LET_TO_KEY[word[0]], LET_TO_KEY[word[0]])
+            logging.debug(upd_node_not_found.format(node=LET_TO_KEY[word[0]]))
             self.children.append(TrieNode(LET_TO_KEY[word[0]]))
             current_node = self.children[-1]
 
@@ -99,21 +107,21 @@ class Trie(object):
             # init temp node reference
             temp_node = None
             # log update stage
-            logging.debug("update method processes letter %s", letter)
+            logging.debug(upd_node_search.format(letter=letter))
             # check if corresponding node already exists
             for child in current_node.children:
                 if child.symbol == LET_TO_KEY[letter]:
                     temp_node = child
             # if there is no node to be found, create one
             if temp_node is None:
-                logging.debug("Node %s is not found. Creating node %s", LET_TO_KEY[letter], LET_TO_KEY[letter])
+                logging.debug(upd_node_not_found.format(node=LET_TO_KEY[letter]))
                 current_node.children.append(TrieNode(LET_TO_KEY[letter]))
                 temp_node = current_node.children[-1]
             # switch to temp node
             current_node = temp_node
 
         # process the last letter of the node
-        logging.debug("update method processes letter %s", word[-1])
+        logging.debug(upd_node_search.format(letter=word[-1]))
         temp_node = None
         # check if corresponding node already exists
         for child in current_node.children:
@@ -128,6 +136,7 @@ class Trie(object):
                     temp_node.words[word] = 1
         # if there is no node to be found, create one
         if temp_node is None:
+            logging.debug(upd_node_not_found.format(node=LET_TO_KEY[word[-1]]))
             current_node.children.append(TrieNode(LET_TO_KEY[word[-1]]))
             temp_node = current_node.children[-1]
             # and create an entry
