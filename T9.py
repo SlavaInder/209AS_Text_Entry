@@ -10,7 +10,9 @@ import logging
 predict_start = "predict method started working on seq {seq}"
 predict_node_search = "predict method searches for node {node}"
 predict_node_not_found = "node {node} is not found. Prediction is empty"
-predict_added = "predictions of the node {node} (depth level = {depth}) are added. Now prediction is \n{prediction}"
+predict_added = "predictions of the node {node} (depth level = {depth}) are included"
+predict_count = "on the depth level {depth} prediction considers {node_num} node(s)"
+predict_unsorted = "the dictionary of all possible predictions is:\n{predict}"
 # set info messages for update
 upd_start = "update method started working on word {word}"
 upd_node_search = "update method processes letter {letter}"
@@ -78,13 +80,26 @@ class Trie(object):
                 current_node = temp_node
 
         # after traversing until the end, we can start give predictions
+        # search for children nodes until specified depth is reached
+        # to do so, find children of all nodes in array $depth times
+        # starting from current node
+        node_array = [current_node]
+        for i in range(depth):
+            current_len = len(node_array)
+            logging.debug(predict_count.format(depth=i, node_num=current_len))
+            for j in range(current_len):
+                for child in node_array[j].children:
+                    if child not in node_array:
+                        node_array.append(child)
+                        logging.debug(predict_added.format(depth=0, node=child.symbol))
         # init prediction dictionary
         prediction_dict = {}
-        prediction_dict.update(current_node.words)
-        logging.debug(predict_added.format(depth=0, prediction=prediction_dict, node=current_node.symbol))
-
-
-
+        # update prediction dictionary with all possible predictions
+        for node in node_array:
+            prediction_dict.update(node.words)
+        # log the results
+        logging.debug(predict_unsorted.format(predict=prediction_dict))
+        return prediction_dict
 
     # update the trie with a new word
     def update(self, word: str):
@@ -176,3 +191,4 @@ if __name__ == "__main__":
     t9.predict("7528")
     t9.predict("752")
     t9.predict("75")
+    t9.predict("7")
