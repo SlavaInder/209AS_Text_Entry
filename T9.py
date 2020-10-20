@@ -1,11 +1,19 @@
 # this file makes use of code presented in this resources
 # https://towardsdatascience.com/implementing-a-trie-data-structure-in-python-in-less-than-100-lines-of-code-a877ea23c1a1
 # https://github.com/npezolano/Python-T9-implementation
+# and dataset presented here (don't forget to site in the presentations!)
+# https://www.kaggle.com/rtatman/the-national-university-of-singapore-sms-corpus
 # performance can be improved by hard-coding KEY_TO_LET correspondence
 # there is no capital letters in the testing set so we shouldn't differentiate between them and lower case letters
 import logging
+import json
 
 
+# set info messages for training
+train_text_raw = "train method received raw text:\n{text}"
+train_text_filtered = "train method filtered all prepositions:\n{text}"
+train_word = "train method processes word {word}"
+train_add = "train method adds word {word} to the trie"
 # set info messages for prediction
 predict_start = "predict method started working on seq {seq}"
 predict_node_search = "predict method searches for node {node}"
@@ -13,10 +21,19 @@ predict_node_not_found = "node {node} is not found. Prediction is empty"
 predict_added = "predictions of the node {node} (depth level = {depth}) are included"
 predict_count = "on the depth level {depth} prediction considers {node_num} node(s)"
 predict_unsorted = "the dictionary of all possible predictions is:\n{predict}"
+predict_sorted = "the sorted list of all possible predictions is:\n{predict}"
+predict_empty = "prediction is empty"
 # set info messages for update
 upd_start = "update method started working on word {word}"
 upd_node_search = "update method processes letter {letter}"
 upd_node_not_found = "Node {node} is not found. Creating node {node}"
+# dummy text
+dummy = """
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+"""
 # set up forward mapping
 KEY_TO_LET = {"1": ["'"],
               "2": ["a", "A", "b", "B", "c", "C"],
@@ -39,9 +56,32 @@ class Trie(object):
         self.children = []
         self.letters_ahead = letters_ahead
 
-    # perform tree setup on a given file
-    def train(self,  file_name: str):
-        pass
+    # perform training on the text from json doc
+    def json_train_adapter(self, file_name: str):
+        with open(file_name, "r") as f:
+            data = json.load(f)
+
+    # perform tree setup on a given text
+    def train(self, text: str):
+        # start logging
+        logging.debug(train_text_raw.format(text=text))
+        # remove all dots, commas, question marks, exclamation marks, tabulations, new strings
+        text = text.replace(".", " ")
+        text = text.replace(",", " ")
+        text = text.replace("!", " ")
+        text = text.replace("?", " ")
+        text = text.replace("\n", " ")
+        text = text.replace("\t", " ")
+        # log filtered text
+        logging.debug(train_text_filtered.format(text=text))
+        # add each word of the remained text to the trie
+        for word in text.split(" "):
+            logging.debug(train_word.format(word=word))
+            # if the word is not empty, add it to the trie
+            if word != "":
+                logging.debug(train_add.format(word=word))
+                self.update(word)
+
 
     # func to predict a typed word
     # returns a list of possible words in order from
@@ -99,7 +139,21 @@ class Trie(object):
             prediction_dict.update(node.words)
         # log the results
         logging.debug(predict_unsorted.format(predict=prediction_dict))
-        return prediction_dict
+        # if prediction dict is empty
+        if prediction_dict is bool:
+            logging.debug(predict_empty)
+            return []
+        else:
+            # else sort it
+            prediction_dict = prediction_dict.items()
+            prediction_dict = sorted(prediction_dict, key=lambda x: x[1], reverse=True)
+            # and remove values from keys
+            prediction_list = []
+            for item in prediction_dict:
+                prediction_list.append(item[0])
+            # log the result
+            logging.debug(predict_sorted.format(predict=prediction_list))
+        return prediction_list
 
     # update the trie with a new word
     def update(self, word: str):
@@ -185,10 +239,23 @@ class TrieNode(object):
 if __name__ == "__main__":
     # setup logging
     logging.basicConfig(filename='logs/T9_execution.log', filemode='w', level=logging.DEBUG)
+    # init trie
     t9 = Trie()
-    t9.update("Slava")
-    t9.predict("75282")
-    t9.predict("7528")
-    t9.predict("752")
-    t9.predict("75")
-    t9.predict("7")
+    # train from text
+    t9.train(dummy)
+    # specify training data
+    training_set_location = "./training_sets/smsCorpus_en_2015.03.09_all.json"
+    # train trie
+    #t9.json_train_adapter(training_set_location)
+
+    # t9.update("Slava")
+    # t9.update("Slava")
+    # t9.update("Slava")
+    # t9.update("Slavf")
+    # t9.update("Slavo")
+    # t9.update("Slavo")
+    # t9.predict("75282")
+    # t9.predict("7528")
+    # t9.predict("752")
+    # t9.predict("75")
+    # t9.predict("7")
