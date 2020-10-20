@@ -7,8 +7,12 @@
 # there is no capital letters in the testing set so we shouldn't differentiate between them and lower case letters
 import logging
 import json
+import pandas as pd
 
 
+# set info messages for json adapter
+json_file = "json adapter received {file}"
+json_data = "json adapter fetched data\n{data}"
 # set info messages for training
 train_text_raw = "train method received raw text:\n{text}"
 train_text_filtered = "train method filtered all prepositions:\n{text}"
@@ -58,8 +62,18 @@ class Trie(object):
 
     # perform training on the text from json doc
     def json_train_adapter(self, file_name: str):
+        # start logging
+        logging.debug(json_file.format(file=file_name))
+        # load the data
         with open(file_name, "r") as f:
             data = json.load(f)
+        listofDict = data['smsCorpus']['message']
+        fullData = pd.DataFrame(listofDict)
+        smsData = fullData[['@id', 'text']]
+        smsData = pd.DataFrame(smsData)
+        text = smsData['text']
+        logging.debug(json_data.format(data=text))
+        #print(data)
 
     # perform tree setup on a given text
     def train(self, text: str):
@@ -242,11 +256,11 @@ if __name__ == "__main__":
     # init trie
     t9 = Trie()
     # train from text
-    t9.train(dummy)
+    # t9.train(dummy)
     # specify training data
     training_set_location = "./training_sets/smsCorpus_en_2015.03.09_all.json"
     # train trie
-    #t9.json_train_adapter(training_set_location)
+    t9.json_train_adapter(training_set_location)
 
     # t9.update("Slava")
     # t9.update("Slava")
