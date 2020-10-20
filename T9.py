@@ -3,6 +3,8 @@
 # https://github.com/npezolano/Python-T9-implementation
 # and dataset presented here (don't forget to site in the presentations!)
 # https://www.kaggle.com/rtatman/the-national-university-of-singapore-sms-corpus
+# used tis code fragment for filtering
+# https://www.kite.com/python/answers/how-to-remove-non-ascii-characters-in-python
 # performance can be improved by hard-coding KEY_TO_LET correspondence
 # there is no capital letters in the testing set so we shouldn't differentiate between them and lower case letters
 import logging
@@ -13,9 +15,11 @@ import pandas as pd
 # set info messages for json adapter
 json_file = "json adapter received {file}"
 json_data = "json adapter fetched data\n{data}"
+json_msg = "json adapter processes message\n{msg}"
 # set info messages for training
 train_text_raw = "train method received raw text:\n{text}"
 train_text_filtered = "train method filtered all prepositions:\n{text}"
+train_unable_to_filter = "train method can not process this text"
 train_word = "train method processes word {word}"
 train_add = "train method adds word {word} to the trie"
 # set info messages for prediction
@@ -38,6 +42,8 @@ aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
 Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
 Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 """
+# symbols to replace
+for_replacement = "1234567890=+-!?&.,:;%^_<>#\\*\'\"@\n\t$()/~"
 # set up forward mapping
 KEY_TO_LET = {"1": ["'"],
               "2": ["a", "A", "b", "B", "c", "C"],
@@ -61,31 +67,39 @@ class Trie(object):
         self.letters_ahead = letters_ahead
 
     # perform training on the text from json doc
-    def json_train_adapter(self, file_name: str):
+    def json_train_adapter(self, file_name: str, portion=1):
         # start logging
         logging.debug(json_file.format(file=file_name))
         # load the data
         with open(file_name, "r") as f:
             data = json.load(f)
-        listofDict = data['smsCorpus']['message']
-        fullData = pd.DataFrame(listofDict)
-        smsData = fullData[['@id', 'text']]
-        smsData = pd.DataFrame(smsData)
-        text = smsData['text']
-        logging.debug(json_data.format(data=text))
-        #print(data)
+        data = data['smsCorpus']['message']
+        data = pd.DataFrame(data)
+        data = data[['@id', 'text']]
+        data = pd.DataFrame(data)
+        data = data['text']
+        # log the data
+        logging.debug(json_data.format(data=data))
+        # process each message
+        for i in range(1000):
+            logging.debug(json_msg.format(msg=data[i]['$']))
+            self.train(data[i]['$'])
 
     # perform tree setup on a given text
     def train(self, text: str):
         # start logging
         logging.debug(train_text_raw.format(text=text))
-        # remove all dots, commas, question marks, exclamation marks, tabulations, new strings
-        text = text.replace(".", " ")
-        text = text.replace(",", " ")
-        text = text.replace("!", " ")
-        text = text.replace("?", " ")
-        text = text.replace("\n", " ")
-        text = text.replace("\t", " ")
+        try:
+            # remove all dots, commas, question marks, exclamation marks, tabulations, new strings
+            for char in for_replacement:
+                text = text.replace(char, " ")
+            # remove all non printable symbols
+            encoded_string = text.encode("ascii", "ignore")
+            text = encoded_string.decode()
+        except AttributeError:
+            # report error
+            logging.debug(train_unable_to_filter)
+            return
         # log filtered text
         logging.debug(train_text_filtered.format(text=text))
         # add each word of the remained text to the trie
@@ -95,7 +109,6 @@ class Trie(object):
             if word != "":
                 logging.debug(train_add.format(word=word))
                 self.update(word)
-
 
     # func to predict a typed word
     # returns a list of possible words in order from
@@ -261,6 +274,8 @@ if __name__ == "__main__":
     training_set_location = "./training_sets/smsCorpus_en_2015.03.09_all.json"
     # train trie
     t9.json_train_adapter(training_set_location)
+
+    print(t9.predict("44"))
 
     # t9.update("Slava")
     # t9.update("Slava")
