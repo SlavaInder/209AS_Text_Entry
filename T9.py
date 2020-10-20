@@ -2,8 +2,11 @@
 # https://towardsdatascience.com/implementing-a-trie-data-structure-in-python-in-less-than-100-lines-of-code-a877ea23c1a1
 # https://github.com/npezolano/Python-T9-implementation
 # performance can be improved by hard-coding KEY_TO_LET correspondence
+# there is no capital letters in the testing set so we shouldn't differentiate between them and lower case letters
 import logging
 
+
+# set info messages
 
 # set up forward mapping
 KEY_TO_LET = {"1": ["'"],
@@ -23,19 +26,59 @@ for key in KEY_TO_LET.keys():
 
 
 class Trie(object):
-    def __init__(self):
+    def __init__(self, letters_ahead=0):
         self.children = []
+        self.letters_ahead = letters_ahead
 
     # perform tree setup on a given file
-    def train(self,  file_name: str):
+    def train(self,  file_name: str, depth: int):
         pass
 
-    # predict a typed word
-    def predict(self, keys: list):
-        pass
+    # func to predict a typed word
+    # returns a list of possible words in order from
+    # the most probable to the least probable
+    def predict(self, seq: str):
+        # init node reference
+        current_node = None
+        # update the log file
+        logging.debug("predict method started working on seq %s", seq)
+        logging.debug("predict method searches for node %s", seq[0])
+        # check if there is a corresponding node
+        for child in self.children:
+            if child.symbol == seq[0]:
+                current_node = child
+        # if there is no, we can not give a prediction
+        if current_node is None:
+            return []
+
+        # if there is, traverse the trie if possible
+        for num in seq[1:]:
+            # init temp node reference
+            temp_node = None
+            # log update stage
+            logging.debug("predict method searches for node %s", num)
+            # check if corresponding node already exists
+            for child in current_node.children:
+                if child.symbol == num:
+                    temp_node = child
+            # if there is no node to be found, we can not give a prediction
+            if temp_node is None:
+                return []
+            # else switch to the next node
+            else:
+                current_node = temp_node
+
+        # after traversing until the end, we can start give predictions
+        # init prediction dictionary
+        prediction_dict = {}
+        prediction_dict += current_node.words
+
+
 
     # update the trie with a new word
     def update(self, word: str):
+        # fix upper-case letters
+        word = word.lower()
         # init node reference
         current_node = None
         # update the log file
@@ -47,6 +90,7 @@ class Trie(object):
                 current_node = child
         # if there is no node to be found, create one
         if current_node is None:
+            logging.debug("Node %s is not found. Creating node %s", LET_TO_KEY[word[0]], LET_TO_KEY[word[0]])
             self.children.append(TrieNode(LET_TO_KEY[word[0]]))
             current_node = self.children[-1]
 
@@ -62,14 +106,46 @@ class Trie(object):
                     temp_node = child
             # if there is no node to be found, create one
             if temp_node is None:
+                logging.debug("Node %s is not found. Creating node %s", LET_TO_KEY[letter], LET_TO_KEY[letter])
                 current_node.children.append(TrieNode(LET_TO_KEY[letter]))
                 temp_node = current_node.children[-1]
             # switch to temp node
             current_node = temp_node
 
         # process the last letter of the node
+        logging.debug("update method processes letter %s", word[-1])
+        temp_node = None
+        # check if corresponding node already exists
+        for child in current_node.children:
+            if child.symbol == LET_TO_KEY[word[-1]]:
+                temp_node = child
+                # if it exists, check whether this word was already encountered before
+                if word in temp_node.words.keys():
+                    # if it was, increase frequency for this word
+                    temp_node.words[word] += 1
+                else:
+                    # if it was not, create a new entry
+                    temp_node.words[word] = 1
+        # if there is no node to be found, create one
+        if temp_node is None:
+            current_node.children.append(TrieNode(LET_TO_KEY[word[-1]]))
+            temp_node = current_node.children[-1]
+            # and create an entry
+            temp_node.words[word] = 1
 
-
+    # def __str__(self):
+    #     # init trie root
+    #     out = "\nroot\n"
+    #     # for each child of the root
+    #     for i in range(len(self.children)):
+    #         # place child first
+    #         child_out = "|-" + self.children[i].symbol + "\n"
+    #         # choose prefix
+    #         if i < len(self.children) - 1: prefix = "|"
+    #         else: prefix = "|"
+    #         out += child_out
+    #
+    #     return out
 
 
 class TrieNode(object):
@@ -84,3 +160,12 @@ if __name__ == "__main__":
     logging.basicConfig(filename='logs/T9_execution.log', filemode='w', level=logging.DEBUG)
     t9 = Trie()
     t9.update("Slava")
+    t9.update("Slavb")
+    t9.update("Slaba")
+    t9.update("Slbva")
+    t9.update("Sbava")
+    t9.update("Blava")
+    logging.info(str(t9))
+    t9.predict("75")
+    t9.predict("21")
+    t9.predict("31")
