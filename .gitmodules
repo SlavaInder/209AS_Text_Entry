@@ -1,0 +1,3 @@
+[submodule "Hardware_Driver/Basic_Keypad/Adafruit_Keypad"]
+	path = Hardware_Driver/Basic_Keypad/Adafruit_Keypad
+	url = https://github.com/adafruit/Adafruit_Keypad
