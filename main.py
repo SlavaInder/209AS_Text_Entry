@@ -47,7 +47,7 @@ class ArduinoAdapter(object):
                 # check if this device is an arduino
                 if ARDUINO_NAME in devices[i][1].lower():
                     # if it is, establish connection with it
-                    self.serial = serial.Serial(devices[i][0], self.baud_rate)
+                    self.serial = serial.Serial(devices[i][0], self.baud_rate, timeout=self.time_out)
                     # report successful connection
                     logging.info(msg_arduino_adapter_connect_successful.format(port=devices[i][0]))
                     # exit function
@@ -58,7 +58,7 @@ class ArduinoAdapter(object):
 
     # read a symbol from COM port
     def read(self):
-        return self.serial.read(self.num_bytes, timeout=self.time_out)
+        return self.serial.read(self.num_bytes)
 
 
 if __name__ == '__main__':

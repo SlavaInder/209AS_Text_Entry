@@ -22,6 +22,7 @@ msg_data_processor_text_adapter_text_fetched = "text adapter successfully fetche
 # set info messages for text processor
 msg_data_processor_text_processor_text_len = "dataset length is {length}"
 msg_data_processor_text_processor_unique_words = "predictor can recognize {word_counter} different words"
+msg_data_processor_text_processor_data_shape =""
 # N NET PREDICTOR MESSAGES
 # set info messages for model builder
 msg_model_builder_finished = "tf successfully build the model"
@@ -45,7 +46,7 @@ class DataProcessor(object):
         with open(training_set_location, "r", encoding='utf-8') as f:
             text = f.read()
         # log the results
-        logging.info(msg_data_processor_text_adapter_text_fetched.format(file_name))
+        logging.info(msg_data_processor_text_adapter_text_fetched.format(file=file_name))
         # filter text
         text = self.text_filter(text)
         # process text
@@ -70,22 +71,23 @@ class DataProcessor(object):
         logging.info(msg_data_processor_text_processor_unique_words.format(word_counter=len(unique_words)))
         # index words (for finding what prediction means when we get it)
         self.word_index = dict((c, i) for i, c in enumerate(unique_words))
-
-
+        # create 2 lists: one with words MEMORY_LENGTH previous words,
+        # another with the word directly following them
+        # TODO: if there are not enough words in memory, switch the word to "empty"
         prev_words = []
         next_words = []
-        for i in range(len(words) - WORD_LENGTH):
-            prev_words.append(words[i:i + WORD_LENGTH])
-            next_words.append(words[i + WORD_LENGTH])
-        print(prev_words[0])
-        print(next_words[0])
-
-        X = np.zeros((len(prev_words), WORD_LENGTH, len(unique_words)), dtype=bool)
-        Y = np.zeros((len(next_words), len(unique_words)), dtype=bool)
+        for i in range(len(words) - MEMORY_LENGTH):
+            prev_words.append(words[i:i + MEMORY_LENGTH])
+            next_words.append(words[i + MEMORY_LENGTH])
+        # init data and label arrays
+        data = np.zeros((len(prev_words), MEMORY_LENGTH, len(unique_words)), dtype=bool)
+        labels = np.zeros((len(next_words), len(unique_words)), dtype=bool)
         for i, each_words in enumerate(prev_words):
             for j, each_word in enumerate(each_words):
-                X[i, j, unique_word_index[each_word]] = 1
-            Y[i, unique_word_index[next_words[i]]] = 1
+                data[i, j, self.word_index [each_word]] = 1
+            labels[i, self.word_index [next_words[i]]] = 1
+
+        return data, labels
 
 
 class NNetWordPredictor(object):
@@ -138,12 +140,13 @@ if __name__ == "__main__":
     shape = (15, 100)
 
     # init predictor
-    predictor = NNetWordPredictor()
+    #predictor = NNetWordPredictor()
     # set up NN model
-    predictor.build_model(shape)
+    #predictor.build_model(shape)
     # init data processor
     word_processor = DataProcessor()
-    data, labels =
+    data, labels = word_processor.txt_adapter(training_set_location)
+    print(data.shape)
     # train model
-    predictor.train_model()
+    # predictor.train_model()
 
