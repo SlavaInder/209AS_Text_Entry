@@ -6,23 +6,36 @@ import numpy as np
 import tensorflow as tf
 import nltk
 
-
-# TODO: refractor info messages: HIGHER CASE, msg+class+func+event
-# set info messages for json adapter
-# set info messages for txt adapter
-msg_txt_adt_text_fetched = "Text adapter successfully fetched text from {file}"
-# set info messages for model builder
-msg_model_builder_finished = "TF successfully build the model"
-# set info messages for train model
-msg_train_model_complied = "TF successfully compiled the model"
-
+# NN hyper parameters
+MEMORY_LENGTH = 5
 # training text
 training_set_location = './training_sets/1661-0.txt'
+
+
+# DATA PROCESSOR MESSAGES
+# set info messages for json adapter
+msg_data_processor_json_adapter_start = ""
+# set info messages for filter
+msg_data_processor_text_filter_finished = "text filtering is complete"
+# set info messages for txt adapter
+msg_data_processor_text_adapter_text_fetched = "text adapter successfully fetched text from {file}"
+# set info messages for text processor
+msg_data_processor_text_processor_text_len = "dataset length is {length}"
+msg_data_processor_text_processor_unique_words = "predictor can recognize {word_counter} different words"
+# N NET PREDICTOR MESSAGES
+# set info messages for model builder
+msg_model_builder_finished = "tf successfully build the model"
+# set info messages for train model
+msg_train_model_complied = "tf successfully compiled the model"
 
 
 # this class is responsible for preparing data in the form
 # acceptable for the model
 class DataProcessor(object):
+    def __init__(self):
+        self.word_index = {}
+
+    # TODO: finish json adapter
     def json_adapter(self, file_name: str):
         pass
 
@@ -31,23 +44,33 @@ class DataProcessor(object):
         # read the file
         with open(training_set_location, "r", encoding='utf-8') as f:
             text = f.read()
+        # log the results
+        logging.info(msg_data_processor_text_adapter_text_fetched.format(file_name))
+        # filter text
+        text = self.text_filter(text)
+        # process text
+        X, Y = self.text_processor(text)
 
+    # delete all unprintable symbols, set everything to lowercase
+    def text_filter(self, text: str):
         text = text.lower()
-        logging.info(msg_txt_adt_text_fetched.format(file_name))
-        self.text_processor(text)
+        return text
 
+    # produce data vectors from text array
     def text_processor(self, text: str):
         # tokenizer is basically the same as str.split(),
         # but performs several things simultaneously:
         # splits string by whitespaces, prepositions, new lines, and such staff
         tokenizer = nltk.tokenize.RegexpTokenizer(r'\w+')
         words = tokenizer.tokenize(text)
+        logging.info(msg_data_processor_text_processor_text_len.format(length=len(words)))
         # same as set(), but performs faster
         unique_words = np.unique(words)
-        unique_word_index = dict((c, i) for i, c in enumerate(unique_words))
-        print('corpus length:', len(unique_words))
+        logging.info(msg_data_processor_text_processor_unique_words.format(word_counter=len(unique_words)))
+        # index words (for finding what prediction means when we get it)
+        self.word_index = dict((c, i) for i, c in enumerate(unique_words))
 
-        WORD_LENGTH = 5
+
         prev_words = []
         next_words = []
         for i in range(len(words) - WORD_LENGTH):

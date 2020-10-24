@@ -5,19 +5,19 @@ import serial
 from serial.tools import list_ports
 
 
+# connection parameters
+ARDUINO_NAME = "arduino"
+BAUD_RATE = 9600
+TIME_OUT = 10
+NUM_BYTES = 1
+
+
 # set up log messages for connect
 msg_arduino_adapter_connect_start = "Adapter started searching for connected arduino"
 msg_arduino_adapter_no_device_found = "Adapter has not found any connected devices"
 msg_arduino_adapter_device_found = "Adapter found {name} connected to {port}"
 msg_arduino_adapter_connect_failed = "No arduino is found"
 msg_arduino_adapter_connect_successful = "Adapter connected to an arduino device on port {port}"
-
-
-# global names
-ARDUINO_NAME = "arduino"
-BAUD_RATE = 9600
-TIME_OUT = 10
-NUM_BYTES = 1
 
 
 # this class handles connection with arduino:
