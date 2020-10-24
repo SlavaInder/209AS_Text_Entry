@@ -42,6 +42,8 @@ aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
 Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
 Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 """
+# training text
+training_set_location = "./training_sets/smsCorpus_en_2015.03.09_all.json"
 # symbols to replace
 for_replacement = "1234567890=+-!?&.,:;%^_<>#\\*\'\"@\n\t$()/~"
 # set up forward mapping
@@ -61,11 +63,13 @@ for key in KEY_TO_LET.keys():
         LET_TO_KEY[value] = key
 
 
+# TODO: separate info and debug messages
 class Trie(object):
     def __init__(self, letters_ahead=0):
         self.children = []
         self.letters_ahead = letters_ahead
 
+    # TODO: after training function is updated, add filtering
     # perform training on the text from json doc
     def json_train_adapter(self, file_name: str, portion=1):
         # start logging
@@ -85,6 +89,8 @@ class Trie(object):
             logging.debug(json_msg.format(msg=data[i]['$']))
             self.train(data[i]['$'])
 
+    # TODO: divide in filtering and training parts
+    # TODO: replace current filtering with tokenizer
     # perform tree setup on a given text
     def train(self, text: str):
         # start logging
@@ -270,8 +276,6 @@ if __name__ == "__main__":
     t9 = Trie()
     # train from text
     # t9.train(dummy)
-    # specify training data
-    training_set_location = "./training_sets/smsCorpus_en_2015.03.09_all.json"
     # train trie
     t9.json_train_adapter(training_set_location)
 
