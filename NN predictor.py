@@ -7,6 +7,7 @@ import tensorflow as tf
 import nltk
 
 
+# TODO: refractor info messages: HIGHER CASE, msg+class+func+event
 # set info messages for json adapter
 # set info messages for txt adapter
 msg_txt_adt_text_fetched = "Text adapter successfully fetched text from {file}"
@@ -99,6 +100,10 @@ class NNetWordPredictor(object):
                                  batch_size=128,
                                  epochs=20,
                                  shuffle=True).history
+
+    # TODO: finish predict method
+    def predict(self):
+        pass
 
 
 if __name__ == "__main__":

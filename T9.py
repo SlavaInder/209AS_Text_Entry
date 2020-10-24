@@ -12,6 +12,7 @@ import json
 import pandas as pd
 
 
+# TODO: refractor info messages: msg+class+func+event
 # set info messages for json adapter
 json_file = "json adapter received {file}"
 json_data = "json adapter fetched data\n{data}"
