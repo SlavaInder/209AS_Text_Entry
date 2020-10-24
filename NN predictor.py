@@ -22,7 +22,7 @@ msg_data_processor_text_adapter_text_fetched = "text adapter successfully fetche
 # set info messages for text processor
 msg_data_processor_text_processor_text_len = "dataset length is {length}"
 msg_data_processor_text_processor_unique_words = "predictor can recognize {word_counter} different words"
-msg_data_processor_text_processor_data_shape =""
+msg_data_processor_text_processor_data_shape = "data processor formed a dataset of length {length} and shape {shape}"
 # N NET PREDICTOR MESSAGES
 # set info messages for model builder
 msg_model_builder_finished = "tf successfully build the model"
@@ -50,8 +50,8 @@ class DataProcessor(object):
         # filter text
         text = self.text_filter(text)
         # process text
-        data, labels = self.text_processor(text)
-        return data, labels
+        processed_data, processed_labels = self.text_processor(text)
+        return processed_data, processed_labels
 
     # delete all unprintable symbols, set everything to lowercase
     def text_filter(self, text: str):
@@ -80,14 +80,17 @@ class DataProcessor(object):
             prev_words.append(words[i:i + MEMORY_LENGTH])
             next_words.append(words[i + MEMORY_LENGTH])
         # init data and label arrays
-        data = np.zeros((len(prev_words), MEMORY_LENGTH, len(unique_words)), dtype=bool)
-        labels = np.zeros((len(next_words), len(unique_words)), dtype=bool)
+        processed_data = np.zeros((len(prev_words), MEMORY_LENGTH, len(unique_words)), dtype=bool)
+        processed_labels = np.zeros((len(next_words), len(unique_words)), dtype=bool)
         for i, each_words in enumerate(prev_words):
             for j, each_word in enumerate(each_words):
-                data[i, j, self.word_index [each_word]] = 1
-            labels[i, self.word_index [next_words[i]]] = 1
-
-        return data, labels
+                processed_data[i, j, self.word_index[each_word]] = 1
+            processed_labels[i, self.word_index[next_words[i]]] = 1
+        # log successful formatting
+        logging.info(msg_data_processor_text_processor_data_shape.format(length=processed_data.shape[0],
+                                                                         shape=(processed_data.shape[1],
+                                                                                processed_data.shape[2])))
+        return processed_data, processed_labels
 
 
 class NNetWordPredictor(object):
@@ -110,7 +113,7 @@ class NNetWordPredictor(object):
         # save the result
         self.model = model
 
-    def train_model(self, data, labels):
+    def train_model(self, training_data, training_labels):
         # compile model
         self.model.compile(
             optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-2),
@@ -120,8 +123,8 @@ class NNetWordPredictor(object):
         # log the result
         logging.info(msg_train_model_complied)
         # fit the model
-        history = self.model.fit(data,
-                                 labels,
+        history = self.model.fit(training_data,
+                                 training_labels,
                                  validation_split=0.05,
                                  batch_size=128,
                                  epochs=20,
@@ -136,17 +139,18 @@ if __name__ == "__main__":
     # setup logging
     logging.basicConfig(filename='logs/NN_predictor_execution.log', filemode='w', level=logging.DEBUG)
 
-    # setup input shape
-    shape = (15, 100)
-
-    # init predictor
-    #predictor = NNetWordPredictor()
-    # set up NN model
-    #predictor.build_model(shape)
     # init data processor
     word_processor = DataProcessor()
     data, labels = word_processor.txt_adapter(training_set_location)
-    print(data.shape)
+
+    # setup input shape
+    shape = (data.shape[1], data.shape[2])
+
+    # init predictor
+    predictor = NNetWordPredictor()
+    # set up NN model
+    predictor.build_model(shape)
+
     # train model
-    # predictor.train_model()
+    predictor.train_model(data, labels)
 
