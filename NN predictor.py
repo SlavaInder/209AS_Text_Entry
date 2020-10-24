@@ -9,9 +9,12 @@ import nltk
 
 # set info messages for json adapter
 # set info messages for txt adapter
-txt_adt_text_fetched = "Text adapter successfully fetched text from {file}"
+msg_txt_adt_text_fetched = "Text adapter successfully fetched text from {file}"
 # set info messages for model builder
-model_builder_finished = "Tf successfully build the model"
+msg_model_builder_finished = "TF successfully build the model"
+# set info messages for train model
+msg_train_model_complied = "TF successfully compiled the model"
+
 # training text
 training_set_location = './training_sets/1661-0.txt'
 
@@ -29,7 +32,7 @@ class DataProcessor(object):
             text = f.read()
 
         text = text.lower()
-        logging.info(txt_adt_text_fetched.format(file_name))
+        logging.info(msg_txt_adt_text_fetched.format(file_name))
         self.text_processor(text)
 
     def text_processor(self, text: str):
@@ -60,18 +63,42 @@ class DataProcessor(object):
             Y[i, unique_word_index[next_words[i]]] = 1
 
 
-# model input is a tuple of
-# memory_length (in words) X number_of_unique_words
-def model_builder(input_shape: tuple):
-    # init model
-    model = tf.keras.Sequential()
-    # add LSTM layer
-    model.add(tf.keras.layers.LSTM(128, input_shape=input_shape))
-    # add Fully connected layer
-    model.add(tf.keras.layers.Dense(input_shape[1], activation='softmax'))
-    # log the result
-    logging.info(model_builder_finished)
-    return model
+class NNetWordPredictor(object):
+    def __init__(self):
+        self.model = None
+
+    # model input is a tuple of
+    # memory_length (in words) X number_of_unique_words
+    def build_model(self, input_shape: tuple):
+        # init model
+        model = tf.keras.Sequential()
+        # add LSTM layer
+        model.add(tf.keras.layers.LSTM(128, input_shape=input_shape))
+        # add fully connected layer
+        model.add(tf.keras.layers.Dense(input_shape[1], activation='softmax'))
+        # log the result
+        logging.info(msg_model_builder_finished)
+        logger = logging.getLogger(__name__)
+        model.summary(print_fn=logger.info)
+        # save the result
+        self.model = model
+
+    def train_model(self, data, labels):
+        # compile model
+        self.model.compile(
+            optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-2),
+            loss=tf.keras.losses.CategoricalCrossentropy(),
+            metrics=[tf.keras.metrics.Accuracy()],
+        )
+        # log the result
+        logging.info(msg_train_model_complied)
+        # fit the model
+        history = self.model.fit(data,
+                                 labels,
+                                 validation_split=0.05,
+                                 batch_size=128,
+                                 epochs=20,
+                                 shuffle=True).history
 
 
 if __name__ == "__main__":
@@ -81,6 +108,10 @@ if __name__ == "__main__":
     # setup input shape
     shape = (15, 100)
 
-    my_model = model_builder(shape)
-
+    # init predictor
+    predictor = NNetWordPredictor()
+    # set up NN model
+    predictor.build_model(shape)
+    # train model
+    predictor.train_model()
 
