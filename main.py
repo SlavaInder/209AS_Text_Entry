@@ -6,7 +6,7 @@ from serial.tools import list_ports
 
 
 # connection parameters
-ARDUINO_NAME = "arduino"
+ARDUINO_NAME = "seeduino"
 BAUD_RATE = 9600
 TIME_OUT = 10
 NUM_BYTES = 1
