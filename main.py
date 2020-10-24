@@ -68,3 +68,6 @@ if __name__ == '__main__':
     my_adapter = ArduinoAdapter()
     # connect adapter and arduino
     my_adapter.connect()
+
+    while True:
+        print(my_adapter.read())

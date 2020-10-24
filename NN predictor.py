@@ -49,7 +49,8 @@ class DataProcessor(object):
         # filter text
         text = self.text_filter(text)
         # process text
-        X, Y = self.text_processor(text)
+        data, labels = self.text_processor(text)
+        return data, labels
 
     # delete all unprintable symbols, set everything to lowercase
     def text_filter(self, text: str):
@@ -140,6 +141,9 @@ if __name__ == "__main__":
     predictor = NNetWordPredictor()
     # set up NN model
     predictor.build_model(shape)
+    # init data processor
+    word_processor = DataProcessor()
+    data, labels =
     # train model
     predictor.train_model()
 
