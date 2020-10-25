@@ -5,7 +5,12 @@ import serial
 import tkinter as tk
 from serial.tools import list_ports
 import predictors_lib as pred
+import autocomplete as ac
 
+
+# predictor parameters
+MEMORY_LEN = 5
+NUM_PREDICTIONS = 5
 
 # connection parameters
 ARDUINO_NAME = "seeduino"
@@ -64,12 +69,7 @@ class ArduinoAdapter(object):
         if self.is_connected:
             return self.serial.read(self.num_bytes).decode("utf-8")
         else:
-            return
-
-
-class KeyBoardAdapter(object):
-    def read(self):
-        return
+            return ""
 
 
 # an interactive entry that allows to display suggestions
@@ -78,6 +78,8 @@ class AutocompleteEntry(tk.Entry):
         # set internal parameters
         # current length of listbox
         self.listboxLength = 0
+        # memory remembering last typed words
+        self.memory = [""]
         # parent (root)
         self.parent = args[0]
         # arduino adapter to read from com port
@@ -162,6 +164,8 @@ class AutocompleteEntry(tk.Entry):
 
     def delentry(self,event):
         T.insert(tk.INSERT, self.get())
+        self.memory.pop(0)
+        self.memory.append(self.get())
         T.insert(tk.INSERT, " ")
         self.delete(0, 'end')
 
@@ -201,12 +205,18 @@ class AutocompleteEntry(tk.Entry):
 
     def comparison(self):
         current_text = self.var.get()
-        options = self.matchesFunction(current_text)
+        options = self.matchesFunction(self.memory, current_text)
         return options
 
 
-def predict():
-    pass
+def autocomplete_predictor_wrapper(memory, seq):
+    last_word = memory[-1]
+    predictions_raw = ac.predict(last_word, seq, NUM_PREDICTIONS)
+    predictions_clear = []
+    for i in range(len(predictions_raw)):
+        predictions_clear.append(predictions_raw[i][0])
+    return predictions_clear
+
 
 if __name__ == '__main__':
     # setup logging
@@ -222,12 +232,19 @@ if __name__ == '__main__':
     training_set_location = "./training_sets/smsCorpus_en_2015.03.09_all.json"
     t9.json_train_adapter(training_set_location)
 
+    # train swapnil model
+    ac.load()
+
     # init tkinter main window
     root = tk.Tk()
     # init a text entry to store already typed text
     T = tk.Text(root, height=10, width=50)
     # init interactive entry
-    entry = AutocompleteEntry(root, matchesFunction=t9.predict, arduino_adapter=my_adapter, width=32)
+    entry = AutocompleteEntry(root,
+#                              matchesFunction=t9.predict,
+                              matchesFunction=autocomplete_predictor_wrapper,
+                              arduino_adapter=my_adapter,
+                              width=32)
     entry.grid(row=0, column=0)
     T.grid(column=0)
     root.mainloop()

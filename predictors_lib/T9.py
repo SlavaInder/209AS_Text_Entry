@@ -147,7 +147,7 @@ class Trie(object):
     # func to predict a typed word
     # returns a list of possible words in order from
     # the most probable to the least probable
-    def predict(self, seq: str, depth=3):
+    def predict(self, memory, seq: str, depth=3):
         # init node reference
         current_node = None
         # update the log file
