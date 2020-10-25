@@ -59,6 +59,7 @@ class ArduinoAdapter(object):
 
     # read a symbol from COM port
     def read(self):
+        print(self.serial.read(self.num_bytes).decode("utf-8"))
         return self.serial.read(self.num_bytes).decode("utf-8")
 
 
