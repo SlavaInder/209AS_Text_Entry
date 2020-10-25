@@ -2,6 +2,7 @@
 # https://medium.com/analytics-vidhya/build-a-simple-predictive-keyboard-using-python-and-keras-b78d3c88cffb
 
 import logging
+import os
 import numpy as np
 import tensorflow as tf
 import nltk
@@ -129,6 +130,8 @@ class NNetWordPredictor(object):
                                  batch_size=128,
                                  epochs=20,
                                  shuffle=True).history
+        path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
+        self.model.save(path)
 
     # TODO: finish predict method
     def predict(self):
