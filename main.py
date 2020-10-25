@@ -79,6 +79,9 @@ class AutocompleteEntry(tk.Entry):
         self.listboxLength = 0
         # parent (root)
         self.parent = args[0]
+        # arduino adapter to read from com port
+        self.arduino_adapter = kwargs['arduino_adapter']
+        del kwargs['arduino_adapter']
         # whether list of choices is currently displayed
         # Custom matches function
         self.matchesFunction = kwargs['matchesFunction']
@@ -103,6 +106,12 @@ class AutocompleteEntry(tk.Entry):
         self.bind("<Escape>", self.deleteListbox)
 
         self.listboxUp = False
+
+        self.after(100, self.arduino_read)
+
+    def arduino_read(self):
+        self.var += self.arduino_adapter.read()
+        self.after(10, self.arduino_read)
 
     def deleteListbox(self, event=None):
         if self.listboxUp:
@@ -199,9 +208,9 @@ if __name__ == '__main__':
     # setup logging
     logging.basicConfig(filename='logs/main_execution.log', filemode='w', level=logging.DEBUG)
     # init Arduino adapter
-#    my_adapter = ArduinoAdapter()
+    my_adapter = ArduinoAdapter()
     # connect adapter and arduino
-#    my_adapter.connect()
+    my_adapter.connect()
 
 
     # init tkinter main window
@@ -209,7 +218,7 @@ if __name__ == '__main__':
     # init a text enty to store already typed text
     T = tk.Text(root, height=10, width=50)
     # init interactive entry
-    entry = AutocompleteEntry(root, matchesFunction=predict, width=32)
+    entry = AutocompleteEntry(root, matchesFunction=predict, arduino_adapter=my_adapter, width=32)
     entry.grid(row=0, column=0)
     T.grid(column=0)
     root.mainloop()
