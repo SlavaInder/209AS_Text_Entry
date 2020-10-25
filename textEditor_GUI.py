@@ -11,7 +11,7 @@ import re
 
 class AutocompleteEntry(tk.Entry):
     def __init__(self, autocompleteList, *args, **kwargs):
-        
+
         self.listboxLength = 0
         self.parent = args[0]
 
@@ -107,7 +107,7 @@ class AutocompleteEntry(tk.Entry):
         T.insert(tk.INSERT, self.get())
         T.insert(tk.INSERT, " ")
         self.delete(0, 'end')
-        
+
 
     def moveUp(self, event):
         if self.listboxUp:
@@ -156,12 +156,12 @@ if __name__ == '__main__':
         return re.match(pattern, acListEntry)
 
     root = tk.Tk()
-    topLevel = tk.Toplevel()
-    topLevel.title('TopLevel')
+    #topLevel = tk.Toplevel()
+    #topLevel.title('TopLevel')
     #pass either root or toplevel as the second argument to use as entry's parent widget
-    T = tk.Text(topLevel, height=10, width=50)
+    T = tk.Text(root, height=10, width=50)
     entry = AutocompleteEntry(
-        autocompleteList, topLevel, width=32, matchesFunction=matches)
+        autocompleteList, root, width=32, matchesFunction=matches)
     entry.grid(row=0, column=0)
     T.grid(column =0)
     #tk.Button(topLevel, text='Python').grid(column=0)

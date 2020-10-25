@@ -4,8 +4,12 @@
 import logging
 import os
 import numpy as np
-import tensorflow as tf
+from keras.models import Sequential, load_model
+from keras.layers import LSTM
+from keras.layers.core import Dense, Activation
+from keras.optimizers import RMSprop
 import nltk
+import heapq
 
 # NN hyper parameters
 MEMORY_LENGTH = 5
@@ -95,6 +99,13 @@ class DataProcessor(object):
                                                                                 processed_data.shape[2])))
         return processed_data, processed_labels
 
+    def prepare_input(self, text):
+        x = np.zeros((1, MEMORY_LENGTH, len(self.word_index)))
+        for t, word in enumerate(text.split()):
+            print(word)
+            x[0, t, self.word_index[word]] = 1
+        return x
+
 
 class NNetWordPredictor(object):
     def __init__(self):
@@ -104,59 +115,63 @@ class NNetWordPredictor(object):
     # memory_length (in words) X number_of_unique_words
     def build_model(self, input_shape: tuple):
         # init model
-        self.model = tf.keras.Sequential()
-        # add LSTM layer
-        self.model.add(tf.keras.layers.LSTM(128, input_shape=input_shape))
-        # add fully connected layer
-        self.model.add(tf.keras.layers.Dense(input_shape[1]))
-        self.model.add(tf.keras.layers.Activation('softmax'))
+        self.model = Sequential()
+        self.model.add(LSTM(128, input_shape=input_shape))
+        self.model.add(Dense(input_shape[1]))
+        self.model.add(Activation('softmax'))
         # log the result
         logging.info(msg_model_builder_finished)
-        logger = logging.getLogger(__name__)
-        self.model.summary(print_fn=logger.info)
+ #       logger = logging.getLogger(__name__)
+#        self.model.summary(print_fn=logger.info)
 
     # load the wights from previous run
     def load_model(self, path: str):
         # load model
-        self.model = tf.keras.models.load_model(path)
+        self.model = keras.models.load_model(path)
 
     def train_model(self, training_data, training_labels):
         # find the path to weights
         path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
         # callback to save after each epoch
-        callbacks = [
-            tf.keras.callbacks.ModelCheckpoint(
-                # Stop training when `val_loss` is no longer improving
-                filepath=path,
-                save_best_only=True,  # Only save a model if `val_loss` has improved.
-                monitor="val_loss",
-                verbose=1,
-            )
-        ]
+        # callbacks = [
+        #     tf.keras.callbacks.ModelCheckpoint(
+        #         # Stop training when `val_loss` is no longer improving
+        #         filepath=path,
+        #         save_best_only=True,  # Only save a model if `val_loss` has improved.
+        #         monitor="val_loss",
+        #         verbose=1,
+        #     )
+        # ]
 
         # compile model
-        self.model.compile(
-            optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-2),
-            loss=tf.keras.losses.CategoricalCrossentropy(),
-            metrics=[tf.keras.metrics.Accuracy(),],
-        )
+        # self.model.compile(
+        #     optimizer=keras.optimizers.RMSprop(learning_rate=1e-2),
+        #     loss=keras.losses.CategoricalCrossentropy(),
+        #     metrics=[keras.metrics.Accuracy(),],
+        # )
 
         # log the result
         logging.info(msg_train_model_complied)
         # fit the model
-        history = self.model.fit(training_data,
-                                 training_labels,
-                                 validation_split=0.05,
-                                 batch_size=128,
-                                 epochs=20,
-                                 shuffle=True,
-                                 callbacks=callbacks).history
+        optimizer = RMSprop(lr=0.01)
+        self.model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+        history = self.model.fit(data, labels, validation_split=0.05, batch_size=128, epochs=2, shuffle=True).history
+
         # save model
         self.model.save(path)
 
     # TODO: finish predict method
-    def predict(self):
-        pass
+    def predict(self, x):
+        self.model.predict(x, verbose=0)[0]
+        next_indices = self.sample(preds)
+
+    def sample(self, preds, top_n=3):
+        preds = np.asarray(preds).astype('float64')
+        preds = np.log(preds)
+        exp_preds = np.exp(preds)
+        preds = exp_preds / np.sum(exp_preds)
+
+        return heapq.nlargest(top_n, range(len(preds)), preds.take)
 
 
 if __name__ == "__main__":
@@ -173,16 +188,23 @@ if __name__ == "__main__":
     shape = (data.shape[1], data.shape[2])
 
     # init predictor
-    #predictor = NNetWordPredictor()
+    predictor = NNetWordPredictor()
+
+    # # load model
+    # path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
+    # predictor.load_model(path)
+    #
+    # x = word_processor.prepare_input("your life will never be")
+    # preds = predictor.predict(x)
+    # word_processor.word_index[]
+
 
     # set up NN model
-    #predictor.build_model(shape)
+    predictor.build_model(shape)
 
     # find the path to weights
-    # path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
-    # load model
-    # predictor.load_model(path)
+
 
     # train model
-    #predictor.train_model(data, labels)
+    predictor.train_model(data, labels)
 
