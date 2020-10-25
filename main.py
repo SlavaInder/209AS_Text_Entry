@@ -110,11 +110,11 @@ class AutocompleteEntry(tk.Entry):
 
         self.listboxUp = False
 
-        self.after(5, self.arduino_read)
-
-    def arduino_read(self):
-        self.var.set(self.var.get()+self.arduino_adapter.read())
-        self.after(5, self.arduino_read)
+    #     self.after(5, self.arduino_read)
+    #
+    # def arduino_read(self):
+    #     self.var.set(self.var.get()+self.arduino_adapter.read())
+    #     self.after(5, self.arduino_read)
 
     def delete_listbox(self, event=None):
         if self.listboxUp:
