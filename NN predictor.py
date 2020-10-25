@@ -80,6 +80,8 @@ class DataProcessor(object):
         for i in range(len(words) - MEMORY_LENGTH):
             prev_words.append(words[i:i + MEMORY_LENGTH])
             next_words.append(words[i + MEMORY_LENGTH])
+        print(prev_words[0])
+        print(next_words[0])
         # init data and label arrays
         processed_data = np.zeros((len(prev_words), MEMORY_LENGTH, len(unique_words)), dtype=bool)
         processed_labels = np.zeros((len(next_words), len(unique_words)), dtype=bool)
@@ -102,17 +104,16 @@ class NNetWordPredictor(object):
     # memory_length (in words) X number_of_unique_words
     def build_model(self, input_shape: tuple):
         # init model
-        model = tf.keras.Sequential()
+        self.model = tf.keras.Sequential()
         # add LSTM layer
-        model.add(tf.keras.layers.LSTM(128, input_shape=input_shape))
+        self.model.add(tf.keras.layers.LSTM(128, input_shape=input_shape))
         # add fully connected layer
-        model.add(tf.keras.layers.Dense(input_shape[1], activation='softmax'))
+        self.model.add(tf.keras.layers.Dense(input_shape[1]))
+        self.model.add(tf.keras.layers.Activation('softmax'))
         # log the result
         logging.info(msg_model_builder_finished)
         logger = logging.getLogger(__name__)
-        model.summary(print_fn=logger.info)
-        # save the result
-        self.model = model
+        self.model.summary(print_fn=logger.info)
 
     # load the wights from previous run
     def load_model(self, path: str):
@@ -126,7 +127,7 @@ class NNetWordPredictor(object):
         callbacks = [
             tf.keras.callbacks.ModelCheckpoint(
                 # Stop training when `val_loss` is no longer improving
-                filepath="mymodel_{epoch}",
+                filepath=path,
                 save_best_only=True,  # Only save a model if `val_loss` has improved.
                 monitor="val_loss",
                 verbose=1,
@@ -165,21 +166,23 @@ if __name__ == "__main__":
     # init data processor
     word_processor = DataProcessor()
     data, labels = word_processor.txt_adapter(training_set_location)
+    print(data[0])
+    print(labels[0])
 
     # setup input shape
     shape = (data.shape[1], data.shape[2])
 
     # init predictor
-    predictor = NNetWordPredictor()
+    #predictor = NNetWordPredictor()
 
     # set up NN model
-    # predictor.build_model(shape)
+    #predictor.build_model(shape)
 
     # find the path to weights
-    path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
+    # path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
     # load model
-    predictor.load_model(path)
+    # predictor.load_model(path)
 
     # train model
-    predictor.train_model(data, labels)
+    #predictor.train_model(data, labels)
 
