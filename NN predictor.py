@@ -115,9 +115,7 @@ class NNetWordPredictor(object):
         self.model = model
 
     # load the wights from previous run
-    def load_model(self, path):
-        # find the path to weights
-        path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
+    def load_model(self, path: str):
         # load model
         self.model = tf.keras.models.load_model(path)
 
@@ -140,8 +138,8 @@ class NNetWordPredictor(object):
             optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-2),
             loss=tf.keras.losses.CategoricalCrossentropy(),
             metrics=[tf.keras.metrics.Accuracy(),],
-            callbacks=callbacks,
         )
+
         # log the result
         logging.info(msg_train_model_complied)
         # fit the model
@@ -150,7 +148,8 @@ class NNetWordPredictor(object):
                                  validation_split=0.05,
                                  batch_size=128,
                                  epochs=20,
-                                 shuffle=True).history
+                                 shuffle=True,
+                                 callbacks=callbacks).history
         # save model
         self.model.save(path)
 
@@ -172,8 +171,14 @@ if __name__ == "__main__":
 
     # init predictor
     predictor = NNetWordPredictor()
+
     # set up NN model
-    predictor.build_model(shape)
+    # predictor.build_model(shape)
+
+    # find the path to weights
+    path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
+    # load model
+    predictor.load_model(path)
 
     # train model
     predictor.train_model(data, labels)
