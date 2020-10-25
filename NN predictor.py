@@ -114,12 +114,33 @@ class NNetWordPredictor(object):
         # save the result
         self.model = model
 
+    # load the wights from previous run
+    def load_model(self, path):
+        # find the path to weights
+        path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
+        # load model
+        self.model = tf.keras.models.load_model(path)
+
     def train_model(self, training_data, training_labels):
+        # find the path to weights
+        path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
+        # callback to save after each epoch
+        callbacks = [
+            tf.keras.callbacks.ModelCheckpoint(
+                # Stop training when `val_loss` is no longer improving
+                filepath="mymodel_{epoch}",
+                save_best_only=True,  # Only save a model if `val_loss` has improved.
+                monitor="val_loss",
+                verbose=1,
+            )
+        ]
+
         # compile model
         self.model.compile(
             optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-2),
             loss=tf.keras.losses.CategoricalCrossentropy(),
-            metrics=[tf.keras.metrics.Accuracy()],
+            metrics=[tf.keras.metrics.Accuracy(),],
+            callbacks=callbacks,
         )
         # log the result
         logging.info(msg_train_model_complied)
@@ -130,7 +151,7 @@ class NNetWordPredictor(object):
                                  batch_size=128,
                                  epochs=20,
                                  shuffle=True).history
-        path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
+        # save model
         self.model.save(path)
 
     # TODO: finish predict method
