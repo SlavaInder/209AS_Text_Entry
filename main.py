@@ -4,6 +4,7 @@ import logging
 import serial
 import tkinter as tk
 from serial.tools import list_ports
+import predictors_lib as pred
 
 
 # connection parameters
@@ -29,6 +30,7 @@ class ArduinoAdapter(object):
         self.baud_rate = BAUD_RATE
         self.time_out = TIME_OUT
         self.num_bytes = NUM_BYTES
+        self.is_connected = False
 
     # establishes connection with arduino
     def connect(self):
@@ -53,23 +55,21 @@ class ArduinoAdapter(object):
                     logging.info(msg_arduino_adapter_connect_successful.format(port=devices[i][0]))
                     # exit function
                     return
-            # if no arduino was found among devices
+                # if no arduino was found among devices
             logging.warning(msg_arduino_adapter_connect_failed)
             raise IOError(msg_arduino_adapter_connect_failed)
 
     # read a symbol from COM port
     def read(self):
-        print(self.serial.read(self.num_bytes).decode("utf-8"))
-        return self.serial.read(self.num_bytes).decode("utf-8")
+        if self.is_connected:
+            return self.serial.read(self.num_bytes).decode("utf-8")
+        else:
+            return
 
 
 class KeyBoardAdapter(object):
     def read(self):
         return
-
-
-def predict():
-    pass
 
 
 # an interactive entry that allows to display suggestions
@@ -104,17 +104,17 @@ class AutocompleteEntry(tk.Entry):
         self.bind("<Up>", self.moveUp)
         self.bind("<Down>", self.moveDown)
         self.bind("<Return>", self.delentry)
-        self.bind("<Escape>", self.deleteListbox)
+        self.bind("<Escape>", self.delete_listbox)
 
         self.listboxUp = False
 
-        self.after(100, self.arduino_read)
+        self.after(5, self.arduino_read)
 
     def arduino_read(self):
         self.var.set(self.var.get()+self.arduino_adapter.read())
-        self.after(10, self.arduino_read)
+        self.after(5, self.arduino_read)
 
-    def deleteListbox(self, event=None):
+    def delete_listbox(self, event=None):
         if self.listboxUp:
             self.listbox.destroy()
             self.listboxUp = False
@@ -130,7 +130,7 @@ class AutocompleteEntry(tk.Entry):
 
     def changed(self, name, index, mode):
         if self.var.get() == '':
-            self.deleteListbox()
+            self.delete_listbox()
         else:
             words = self.comparison()
             if words:
@@ -151,7 +151,7 @@ class AutocompleteEntry(tk.Entry):
                 for w in words:
                     self.listbox.insert(tk.END, w)
             else:
-                self.deleteListbox()
+                self.delete_listbox()
 
     def selection(self, event):
         if self.listboxUp:
@@ -200,10 +200,13 @@ class AutocompleteEntry(tk.Entry):
                 self.listbox.activate(index)
 
     def comparison(self):
-        print(self.var.get())
-        text = "recommendation"
-        return [text]
+        current_text = self.var.get()
+        options = self.matchesFunction(current_text)
+        return options
 
+
+def predict():
+    pass
 
 if __name__ == '__main__':
     # setup logging
@@ -211,15 +214,20 @@ if __name__ == '__main__':
     # init Arduino adapter
     my_adapter = ArduinoAdapter()
     # connect adapter and arduino
-    my_adapter.connect()
+    # my_adapter.connect()
 
+    # init trie
+    t9 = pred.Trie()
+    # train trie
+    training_set_location = "./training_sets/smsCorpus_en_2015.03.09_all.json"
+    t9.json_train_adapter(training_set_location)
 
     # init tkinter main window
     root = tk.Tk()
-    # init a text enty to store already typed text
+    # init a text entry to store already typed text
     T = tk.Text(root, height=10, width=50)
     # init interactive entry
-    entry = AutocompleteEntry(root, matchesFunction=predict, arduino_adapter=my_adapter, width=32)
+    entry = AutocompleteEntry(root, matchesFunction=t9.predict, arduino_adapter=my_adapter, width=32)
     entry.grid(row=0, column=0)
     T.grid(column=0)
     root.mainloop()

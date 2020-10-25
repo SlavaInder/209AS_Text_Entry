@@ -131,7 +131,7 @@ class NNetWordPredictor(object):
 
     def train_model(self, training_data, training_labels):
         # find the path to weights
-        path = os.path.join("weights", str(MEMORY_LENGTH) + "_next_words_model")
+        path = os.path.join("../weights", str(MEMORY_LENGTH) + "_next_words_model")
         # callback to save after each epoch
         # callbacks = [
         #     tf.keras.callbacks.ModelCheckpoint(
@@ -176,7 +176,7 @@ class NNetWordPredictor(object):
 
 if __name__ == "__main__":
     # setup logging
-    logging.basicConfig(filename='logs/NN_predictor_execution.log', filemode='w', level=logging.DEBUG)
+    logging.basicConfig(filename='../logs/NN_predictor_execution.log', filemode='w', level=logging.DEBUG)
 
     # init data processor
     word_processor = DataProcessor()

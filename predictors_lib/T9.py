@@ -48,15 +48,42 @@ training_set_location = "./training_sets/smsCorpus_en_2015.03.09_all.json"
 # symbols to replace
 for_replacement = "1234567890=+-!?&.,:;%^_<>#\\*\'\"@\n\t$()/~"
 # set up forward mapping
-KEY_TO_LET = {"1": ["'"],
-              "2": ["a", "A", "b", "B", "c", "C"],
-              "3": ["d", "D", "e", "E", "f", "F"],
-              "4": ["g", "G", "h", "H", "i", "I"],
-              "5": ["j", "J", "k", "K", "l", "L"],
-              "6": ["m", "M", "n", "N", "o", "O"],
-              "7": ["p", "P", "q", "Q", "r", "R", "s", "S"],
-              "8": ["t", "T", "u", "U", "v", "V"],
-              "9": ["w", "W", "x", "X", "y", "Y", "z", "Z"]}
+# KEY_TO_LET = {"1": ["'"],
+#               "2": ["a", "A", "b", "B", "c", "C"],
+#               "3": ["d", "D", "e", "E", "f", "F"],
+#               "4": ["g", "G", "h", "H", "i", "I"],
+#               "5": ["j", "J", "k", "K", "l", "L"],
+#               "6": ["m", "M", "n", "N", "o", "O"],
+#               "7": ["p", "P", "q", "Q", "r", "R", "s", "S"],
+#               "8": ["t", "T", "u", "U", "v", "V"],
+#               "9": ["w", "W", "x", "X", "y", "Y", "z", "Z"]}
+KEY_TO_LET = {"a": "a",
+              "b": "b",
+              "c": "c",
+              "d": "d",
+              "e": "e",
+              "f": "f",
+              "g": "g",
+              "h": "h",
+              "i": "i",
+              "j": "j",
+              "k": "k",
+              "l": "l",
+              "m": "m",
+              "n": "n",
+              "o": "o",
+              "p": "p",
+              "q": "q",
+              "r": "r",
+              "s": "s",
+              "t": "t",
+              "u": "u",
+              "v": "v",
+              "w": "w",
+              "x": "x",
+              "y": "y",
+              "z": "z"
+}
 # set up backwards mapping
 LET_TO_KEY = {}
 for key in KEY_TO_LET.keys():
@@ -272,7 +299,7 @@ class TrieNode(object):
 
 if __name__ == "__main__":
     # setup logging
-    logging.basicConfig(filename='logs/T9_execution.log', filemode='w', level=logging.DEBUG)
+    logging.basicConfig(filename='../logs/T9_execution.log', filemode='w', level=logging.DEBUG)
     # init trie
     t9 = Trie()
     # train from text
