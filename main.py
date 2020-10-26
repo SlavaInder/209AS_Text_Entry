@@ -124,9 +124,9 @@ class AutocompleteEntry(tk.Entry):
             print(complete_history)
             if len(complete_history) > 0:
                 if complete_history[-1] == "#":
-                    self.after(10, self.moveDown)
-                if complete_history[-1] == "*":
-                    self.after(10, self.moveUp)
+                    self.after(10, self.moveDown, None)
+                elif complete_history[-1] == "*":
+                    self.after(10, self.moveUp, None)
                 else:
                     complete_history = complete_history.replace("*", "")
                     complete_history = complete_history.replace("#", "")
@@ -212,16 +212,15 @@ class AutocompleteEntry(tk.Entry):
             else:
                 index = self.listbox.curselection()[0]
 
-            if index != tk.END:
-                self.listbox.selection_clear(first=index)
-                if int(index) == self.listboxLength-1:
-                    index = "0"
-                else:
-                    index = str(int(index)+1)
+            self.listbox.selection_clear(first=index)
+            if int(index) == self.listboxLength-1:
+                index = "0"
+            else:
+                index = str(int(index)+1)
 
-                self.listbox.see(index)  # Scroll!
-                self.listbox.selection_set(first=index)
-                self.listbox.activate(index)
+            self.listbox.see(index)  # Scroll!
+            self.listbox.selection_set(first=index)
+            self.listbox.activate(index)
 
     def comparison(self):
         current_text = self.var.get()

@@ -131,17 +131,15 @@ class AutocompleteEntry(tk.Entry):
                 index = '-1'
             else:
                 index = self.listbox.curselection()[0]
+            self.listbox.selection_clear(first=index)
+            if int(index) == self.listboxLength-1:
+                index = "0"
+            else:
+                index = str(int(index)+1)
 
-            if index != tk.END:
-                self.listbox.selection_clear(first=index)
-                if int(index) == self.listboxLength-1:
-                    index = "0"
-                else:
-                    index = str(int(index)+1)
-
-                self.listbox.see(index)  # Scroll!
-                self.listbox.selection_set(first=index)
-                self.listbox.activate(index)
+            self.listbox.see(index)  # Scroll!
+            self.listbox.selection_set(first=index)
+            self.listbox.activate(index)
 
     def comparison(self):
         return [w for w in self.autocompleteList if self.matchesFunction(self.var.get(), w)]
