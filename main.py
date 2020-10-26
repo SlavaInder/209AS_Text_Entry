@@ -85,7 +85,7 @@ class AutocompleteEntry(tk.Entry):
         # parent (root)
         self.parent = args[0]
         # whether some option were selected
-        self.prediction_selected  = False
+        self.prediction_selected = False
         # init memory for a decoder
         self.recordings = []
         # arduino adapter to read from com port
@@ -127,15 +127,23 @@ class AutocompleteEntry(tk.Entry):
             if len(complete_history) > 0:
                 if complete_history[-1] == "#":
                     self.after(10, self.moveDown, None)
+                    self.prediction_selected = True
                 elif complete_history[-1] == "*":
                     self.after(10, self.moveUp, None)
+                    self.prediction_selected = True
                 elif complete_history[-1] == "0":
                     # if the user did not selected any predictions from the list
-                    if self.prediction_selected == False:
+                    if not self.prediction_selected:
                         # move the text from entry to textblock
                         self.after(10, self.delentry, None)
                         # clear history of keys
-                        self.recordings= []
+                        self.recordings = []
+                    # if the user already selected a prediction, move it to the string
+                    elif self.prediction_selected:
+                        # move prediction to the entry
+                        self.after(10, self.select, None)
+                        # clear prediction selected
+                        self.prediction_selected = False
                 else:
                     complete_history = complete_history.replace("*", "")
                     complete_history = complete_history.replace("#", "")
