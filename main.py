@@ -121,10 +121,12 @@ class AutocompleteEntry(tk.Entry):
         if reading is not None:
             self.recordings.append(reading)
             complete_history = disp_string(self.recordings, "\x08")
-            if complete_history[-1] == "#":
-                self.moveDown()
-            if complete_history[-1] == "*":
-                self.moveUp()
+            print(complete_history)
+            if len(complete_history) > 0:
+                if complete_history[-1] == "#":
+                    self.moveDown(None)
+                if complete_history[-1] == "*":
+                    self.moveUp(None)
             else:
                 complete_history = complete_history.replace("*", "")
                 complete_history = complete_history.replace("#", "")
