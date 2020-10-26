@@ -110,11 +110,13 @@ class AutocompleteEntry(tk.Entry):
 
         self.listboxUp = False
 
-    #     self.after(5, self.arduino_read)
-    #
-    # def arduino_read(self):
-    #     self.var.set(self.var.get()+self.arduino_adapter.read())
-    #     self.after(5, self.arduino_read)
+        self.after(50, self.arduino_read)
+
+    def arduino_read(self):
+        if self.arduino_adapter.read() != "":
+            self.var.set(self.var.get()+self.arduino_adapter.read())
+            self.after(50, self.arduino_read)
+
 
     def delete_listbox(self, event=None):
         if self.listboxUp:
@@ -217,6 +219,17 @@ def autocomplete_predictor_wrapper(memory, seq):
         predictions_clear.append(predictions_raw[i][0])
     return predictions_clear
 
+
+def disp_string(rec_list, ch):
+    s = b''.join(rec_list).decode("ascii")
+    l1 = [i for i, letter in enumerate(s) if letter == ch]
+    l2 = [i-1 for i, letter in enumerate(s) if letter == ch]
+    l1.extend(l2)
+    idx = list(range(len(rec_list)))
+    cov_idx = list(set(idx)^set(l1))
+    disp_list = [rec_list[i] for i in cov_idx]
+    disp_str = b''.join(disp_list).decode("ascii")
+    return disp_str
 
 if __name__ == '__main__':
     # setup logging
