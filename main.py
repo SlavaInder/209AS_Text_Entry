@@ -124,14 +124,14 @@ class AutocompleteEntry(tk.Entry):
             print(complete_history)
             if len(complete_history) > 0:
                 if complete_history[-1] == "#":
-                    self.moveDown(None)
+                    self.after(10, self.moveDown)
                 if complete_history[-1] == "*":
-                    self.moveUp(None)
-            else:
-                complete_history = complete_history.replace("*", "")
-                complete_history = complete_history.replace("#", "")
-                self.var.set(complete_history)
-        self.after(10, self.arduino_read)
+                    self.after(10, self.moveUp)
+                else:
+                    complete_history = complete_history.replace("*", "")
+                    complete_history = complete_history.replace("#", "")
+                    self.var.set(complete_history)
+        self.after(50, self.arduino_read)
 
 
     def delete_listbox(self, event=None):
