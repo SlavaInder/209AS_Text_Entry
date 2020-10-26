@@ -240,7 +240,7 @@ if __name__ == '__main__':
     logging.basicConfig(filename='logs/main_execution.log', filemode='w', level=logging.DEBUG)
     # init Arduino adapter
     my_adapter = ArduinoAdapter()
-    # connect adapter and arduino
+    connect adapter and arduino
     # my_adapter.connect()
 
     # init trie
