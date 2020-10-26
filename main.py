@@ -118,7 +118,7 @@ class AutocompleteEntry(tk.Entry):
         reading = self.arduino_adapter.read()
         if reading != "":
             self.recordings.append(reading)
-            complete_history = disp_string(self.recordings, "\xo8")
+            complete_history = disp_string(self.recordings, "\x08")
             self.var.set(complete_history)
         self.after(10, self.arduino_read)
 
@@ -235,6 +235,7 @@ def disp_string(rec_list, ch):
     disp_list = [rec_list[i] for i in cov_idx]
     disp_str = b''.join(disp_list).decode("ascii")
     return disp_str
+
 
 if __name__ == '__main__':
     # setup logging
