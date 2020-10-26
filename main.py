@@ -115,8 +115,9 @@ class AutocompleteEntry(tk.Entry):
         self.after(50, self.arduino_read)
 
     def arduino_read(self):
-        if self.arduino_adapter.read() != "":
-            complete_history = disp_string(self.recordings, self.arduino_adapter.read())
+        reading = self.arduino_adapter.read()
+        if reading != "":
+            complete_history = disp_string(self.recordings, reading)
             self.var.set(complete_history)
             self.after(50, self.arduino_read)
 
