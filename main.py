@@ -16,7 +16,7 @@ NUM_PREDICTIONS = 5
 ARDUINO_NAME = "seeduino"
 BAUD_RATE = 9600
 TIME_OUT = 10
-NUM_BYTES = 2
+NUM_BYTES = 1
 
 
 # set up log messages for connect
