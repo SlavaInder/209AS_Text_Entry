@@ -56,6 +56,7 @@ class ArduinoAdapter(object):
                 if ARDUINO_NAME in devices[i][1].lower():
                     # if it is, establish connection with it
                     self.serial = serial.Serial(devices[i][0], self.baud_rate, timeout=self.time_out)
+                    self.is_connected = True
                     # report successful connection
                     logging.info(msg_arduino_adapter_connect_successful.format(port=devices[i][0]))
                     # exit function
