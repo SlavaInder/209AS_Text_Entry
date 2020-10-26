@@ -82,6 +82,8 @@ class AutocompleteEntry(tk.Entry):
         self.memory = [""]
         # parent (root)
         self.parent = args[0]
+        # init memory for a decoder
+        self.recordings = []
         # arduino adapter to read from com port
         self.arduino_adapter = kwargs['arduino_adapter']
         del kwargs['arduino_adapter']
@@ -114,7 +116,8 @@ class AutocompleteEntry(tk.Entry):
 
     def arduino_read(self):
         if self.arduino_adapter.read() != "":
-            self.var.set(self.var.get()+self.arduino_adapter.read())
+            complete_history = disp_string(self.recordings, self.arduino_adapter.read())
+            self.var.set(complete_history)
             self.after(50, self.arduino_read)
 
 
