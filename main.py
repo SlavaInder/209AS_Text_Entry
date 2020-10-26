@@ -121,7 +121,14 @@ class AutocompleteEntry(tk.Entry):
         if reading is not None:
             self.recordings.append(reading)
             complete_history = disp_string(self.recordings, "\x08")
-            self.var.set(complete_history)
+            if complete_history[-1] == "#":
+                self.moveDown()
+            if complete_history[-1] == "*":
+                self.moveUp()
+            else:
+                complete_history = complete_history.replace("*", "")
+                complete_history = complete_history.replace("#", "")
+                self.var.set(complete_history)
         self.after(10, self.arduino_read)
 
 
