@@ -67,8 +67,9 @@ class ArduinoAdapter(object):
     # read a symbol from COM port
     def read(self):
         if self.is_connected:
-            return self.serial.read(self.num_bytes).decode("utf-8")
+            return self.serial.read(self.num_bytes)
         else:
+            print("THERE IS NO CONNECTION!!!")
             return ""
 
 
@@ -116,7 +117,7 @@ class AutocompleteEntry(tk.Entry):
 
     def arduino_read(self):
         reading = self.arduino_adapter.read()
-        if reading != "":
+        if reading is not None:
             self.recordings.append(reading)
             complete_history = disp_string(self.recordings, "\x08")
             self.var.set(complete_history)
