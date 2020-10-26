@@ -188,6 +188,7 @@ class AutocompleteEntry(tk.Entry):
         self.delete(0, 'end')
 
     def moveUp(self, event):
+        print("UP!")
         if self.listboxUp:
             if self.listbox.curselection() == ():
                 index = '0'
@@ -204,6 +205,7 @@ class AutocompleteEntry(tk.Entry):
             self.listbox.activate(index)
 
     def moveDown(self, event):
+        print("DOWN!")
         if self.listboxUp:
             if self.listbox.curselection() == ():
                 index = '-1'
