@@ -119,7 +119,7 @@ class AutocompleteEntry(tk.Entry):
         if reading != "":
             complete_history = disp_string(self.recordings, reading)
             self.var.set(complete_history)
-            self.after(50, self.arduino_read)
+        self.after(50, self.arduino_read)
 
 
     def delete_listbox(self, event=None):
